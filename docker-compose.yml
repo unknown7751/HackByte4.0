@@ -1,0 +1,109 @@
+version: "3.9"
+
+services:
+  # ─────────────────────────────────────────
+  # PostgreSQL + PostGIS
+  # ─────────────────────────────────────────
+  db:
+    image: postgis/postgis:16-3.4
+    container_name: smartaccident_db
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-smartaccident}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-smartaccident_secret}
+      POSTGRES_DB: ${POSTGRES_DB:-smartaccident_db}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-postgis.sql:/docker-entrypoint-initdb.d/init-postgis.sql:ro
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-smartaccident} -d ${POSTGRES_DB:-smartaccident_db}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - smartaccident_net
+
+  # ─────────────────────────────────────────
+  # FastAPI Backend (with hot reload)
+  # ─────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    container_name: smartaccident_backend
+    restart: unless-stopped
+    command: uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload --reload-dir src
+    environment:
+      # Database
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-smartaccident}:${POSTGRES_PASSWORD:-smartaccident_secret}@db:5432/${POSTGRES_DB:-smartaccident_db}
+      # App
+      APP_ENV: development
+      SECRET_KEY: ${SECRET_KEY:-change_me_in_production}
+      # Trello
+      TRELLO_API_KEY: ${TRELLO_API_KEY:-}
+      TRELLO_API_TOKEN: ${TRELLO_API_TOKEN:-}
+      TRELLO_WEBHOOK_SECRET: ${TRELLO_WEBHOOK_SECRET:-}
+      # Google Maps
+      GOOGLE_MAPS_API_KEY: ${GOOGLE_MAPS_API_KEY:-}
+      # Blockchain
+      WEB3_PROVIDER_URL: ${WEB3_PROVIDER_URL:-}
+      REWARD_CONTRACT_ADDRESS: ${REWARD_CONTRACT_ADDRESS:-}
+      DEPLOYER_PRIVATE_KEY: ${DEPLOYER_PRIVATE_KEY:-}
+      # CORS
+      CORS_ORIGINS: "http://localhost:3000"
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+      - /app/__pycache__
+      - /app/.venv
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - smartaccident_net
+
+  # ─────────────────────────────────────────
+  # Next.js Frontend (with hot reload)
+  # ─────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: smartaccident_frontend
+    restart: unless-stopped
+    command: npm run dev
+    environment:
+      NODE_ENV: development
+      NEXT_PUBLIC_API_URL: http://localhost:8000
+      NEXT_PUBLIC_WS_URL: ws://localhost:8000/ws
+      NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: ${GOOGLE_MAPS_API_KEY:-}
+      # Allows Next.js to connect to the backend container by name internally
+      BACKEND_INTERNAL_URL: http://backend:8000
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules # Preserve container's node_modules
+      - /app/.next # Preserve Next.js build cache
+    depends_on:
+      - backend
+    networks:
+      - smartaccident_net
+
+# ─────────────────────────────────────────
+# Named Volumes
+# ─────────────────────────────────────────
+volumes:
+  postgres_data:
+    driver: local
+
+# ─────────────────────────────────────────
+# Networks
+# ─────────────────────────────────────────
+networks:
+  smartaccident_net:
+    driver: bridge
