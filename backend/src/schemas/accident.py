@@ -15,7 +15,7 @@ class LatLng(BaseModel):
 
 # ── Create ─────────────────────────────────────────────────────
 class AccidentCreate(BaseModel):
-    trello_card_id: str = Field(..., min_length=1, examples=["abc123xyz"])
+    source_id: str = Field(..., min_length=1, examples=["voice-+919876543210"])
     description: str | None = None
     location_name: str = Field(..., min_length=1, examples=["Civil Lines, Nagpur"])
     location: LatLng
@@ -27,7 +27,7 @@ class AccidentCreate(BaseModel):
 # ── Read (response) ───────────────────────────────────────────
 class AccidentRead(BaseModel):
     id: UUID
-    trello_card_id: str
+    source_id: str
     description: str | None = None
     location_name: str
     location: LatLng | None = None

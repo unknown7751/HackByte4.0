@@ -11,7 +11,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from src.config.settings import settings
-from src.routes import accidents_router, volunteers_router, tasks_router, rewards_router
+from src.routes import accidents_router, volunteers_router, tasks_router, voice_router,rewards_router
 
 
 # ── Lifespan (startup / shutdown) ──────────────────────────────
@@ -63,6 +63,7 @@ app.include_router(accidents_router, prefix="/api/v1")
 app.include_router(volunteers_router, prefix="/api/v1")
 app.include_router(tasks_router, prefix="/api/v1")
 app.include_router(rewards_router, prefix="/api/v1")
+app.include_router(voice_router, prefix="/api/v1")
 
 
 # ── Health Check ───────────────────────────────────────────────

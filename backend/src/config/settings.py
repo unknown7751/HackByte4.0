@@ -24,10 +24,10 @@ class Settings(BaseSettings):
     SECRET_KEY: str = "change_me_in_production"
     CORS_ORIGINS: str = "http://localhost:3000"
 
-    # ── Trello ─────────────────────────────────────────────────
-    TRELLO_API_KEY: str = ""
-    TRELLO_API_TOKEN: str = ""
-    TRELLO_WEBHOOK_SECRET: str = ""
+    # ── Twilio (Voice Calls) ──────────────────────────────────
+    TWILIO_ACCOUNT_SID: str = ""
+    TWILIO_AUTH_TOKEN: str = ""
+    TWILIO_PHONE_NUMBER: str = ""
 
     # ── Google Maps ────────────────────────────────────────────
     GOOGLE_MAPS_API_KEY: str = ""

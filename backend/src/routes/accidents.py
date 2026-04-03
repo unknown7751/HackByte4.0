@@ -23,7 +23,7 @@ def _row_to_schema(row: Accident) -> AccidentRead:
     """Convert an ORM Accident row to the Pydantic read schema."""
     return AccidentRead(
         id=row.id,
-        trello_card_id=row.trello_card_id,
+        source_id=row.source_id,
         description=row.description,
         location_name=row.location_name,
         location=geom_to_latlng(row.location_geom),
@@ -75,7 +75,7 @@ async def create_accident(
 ):
     """Create a new accident record."""
     accident = Accident(
-        trello_card_id=body.trello_card_id,
+        source_id=body.source_id,
         description=body.description,
         location_name=body.location_name,
         location_geom=latlng_to_wkb(body.location),

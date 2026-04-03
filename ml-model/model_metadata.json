@@ -1,0 +1,16 @@
+{
+  "model_type": "TF-IDF + GradientBoosting",
+  "n_training_samples": 480,
+  "n_test_samples": 120,
+  "cv_f1_mean": 0.9958,
+  "cv_f1_std": 0.0083,
+  "classes": [
+    "Highly Critical",
+    "Moderate"
+  ],
+  "tfidf_features": 2269,
+  "ngram_range": [
+    1,
+    3
+  ]
+}

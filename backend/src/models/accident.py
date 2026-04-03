@@ -9,7 +9,7 @@ class Accident(Base):
     __tablename__ = "accidents"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    trello_card_id = Column(String, unique=True, nullable=False, index=True)
+    source_id = Column(String, nullable=False, index=True)  # e.g. "voice-+919876543210"
     
     # Description and reported details
     description = Column(String, nullable=True)
@@ -21,7 +21,7 @@ class Accident(Base):
     # Machine Learning assessed criticality: "Moderate", "Highly Critical"
     criticality = Column(String, nullable=True)
     
-    # Formatted tags or checklist from Trello
+    # Auto-extracted assistance types from report
     assistance_required = Column(ARRAY(String), nullable=True)
     
     # Status: reported, assessing, dispatched, resolved
