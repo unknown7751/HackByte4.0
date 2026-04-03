@@ -11,7 +11,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from src.config.settings import settings
-from src.routes import accidents_router, volunteers_router, tasks_router, voice_router
+from src.routes import accidents_router, volunteers_router, tasks_router, voice_router,rewards_router
 
 
 # ── Lifespan (startup / shutdown) ──────────────────────────────
@@ -22,6 +22,15 @@ async def lifespan(app: FastAPI):
     print("🚀 SmartAccident API starting up...")
     print(f"   Environment : {settings.APP_ENV}")
     print(f"   Database    : {settings.DATABASE_URL.split('@')[-1]}")
+
+    # Initialize blockchain reward service (non-blocking, logs warnings if unconfigured)
+    try:
+        from src.services import blockchain_service
+        blockchain_service.initialize()
+        print("   Blockchain  : ✅ connected")
+    except Exception as e:
+        print(f"   Blockchain  : ⚠️  {e} (rewards disabled)")
+
     yield
     # Shutdown: dispose the engine to release connections.
     from src.config.database import engine
@@ -53,6 +62,7 @@ app.add_middleware(
 app.include_router(accidents_router, prefix="/api/v1")
 app.include_router(volunteers_router, prefix="/api/v1")
 app.include_router(tasks_router, prefix="/api/v1")
+app.include_router(rewards_router, prefix="/api/v1")
 app.include_router(voice_router, prefix="/api/v1")
 
 
